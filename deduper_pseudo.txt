@@ -7,18 +7,30 @@ Note the following variables and their columns:
     POS     (COL4)
     CIGAR   (COL6)
 
+ENSURE THAT WHEN THE END OF THE FILE IS REACHED, WE DO NOT ADD A DUPLICATE 
+
 ### FUNCTIONS ###
+
+collect inputs using argparse...
 
 create function: fivepstart, which accepts POS (Integer), CIGAR (String), and FLAG (Integer) as arguments and returns an Integer.
     This function accepts the leftmost position, the cigar string, and the strandedness variable and returns the 5' start position of the read as an integer. 
     ** Test examples (for individual functions) ** 
     Return fivepstart(Integer)
 
-create function: umi_grabber, which accepts 
+create function: umigrabber, which accepts QNAME string input and returns a string.
+    This function accepts the Query Template Name, and cuts the template down to return only the UMI as a string.
+    ** Test examples (for individual functions) **
+    Return UMI(Intiger)
 
-### READING IN THE DATA ###
+
+### SCRIPT BODY ###
 
 With the input UMI file, read the unique UMI's into a set for fast search. 
+Create a Bad Umi Dictionary 
+Create a Duplicate Dictionary 
+
+Open an ouput file at the provided path: 
 
 With the input SAM file, reading row by row:
 
@@ -28,6 +40,7 @@ With the input SAM file, reading row by row:
     while we have a real query (in bounds of file):
 
         if reference RNAME is not equal to query RNAME: # IF THE CHROMOSOMES DO NOT MATCH
+            Write reference to output file # Moving on with no match
             Set reference equal to query # Move reference down
             Move query down one row # Move query down
             continue # No Match
@@ -35,12 +48,20 @@ With the input SAM file, reading row by row:
         if reference FLAG (strand) is the same as query FLAG (strand): # IF THE STRANDS DO MATCH
             if the outputs from passing FLAG into fivepstart function for query and reference are equal: # IF THE START POSITIONS MATCH
                 if the UMIs match or if they query UMIs not in UMI SET: # IF THE UMIS MATCH or BAD UMI
-                    remove query row (as reference row came first) # Match or Bad UMI
+                    Add to holder to format output report ??
+                        Update Duplicate Dictionary.
+                        Update Bad UMI Dictionary. 
+                    Remove Query Row Entirely 
+                else write query row to output file # IF AFTER MATCH, UMI NO MATCH
+            else write query row to output file # IF AFTER MATCH START POSITION NO MATCH
+        else write query row to output file # IF AFTER CHROM, STRANDS NO MATCH
 
         Move query down one row 
 
+close files
+write report to txt near output dir 
 
-`
+
 
 
 
