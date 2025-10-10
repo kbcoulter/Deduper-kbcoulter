@@ -1,0 +1,47 @@
+### NOTE ###
+
+Note the following variables and their columns:
+    QNAME   (COL1) 
+    FLAG    (COL2)
+    RNAME   (COL3) 
+    POS     (COL4)
+    CIGAR   (COL6)
+
+### FUNCTIONS ###
+
+create function: fivepstart, which accepts POS (Integer), CIGAR (String), and FLAG (Integer) as arguments and returns an Integer.
+    This function accepts the leftmost position, the cigar string, and the strandedness variable and returns the 5' start position of the read as an integer. 
+    ** Test examples (for individual functions) ** 
+    Return fivepstart(Integer)
+
+create function: umi_grabber, which accepts 
+
+### READING IN THE DATA ###
+
+With the input UMI file, read the unique UMI's into a set for fast search. 
+
+With the input SAM file, reading row by row:
+
+    Set variable reference to be first row   
+    Set variable query to be second row 
+
+    while we have a real query (in bounds of file):
+
+        if reference RNAME is not equal to query RNAME: # IF THE CHROMOSOMES DO NOT MATCH
+            Set reference equal to query # Move reference down
+            Move query down one row # Move query down
+            continue # No Match
+
+        if reference FLAG (strand) is the same as query FLAG (strand): # IF THE STRANDS DO MATCH
+            if the outputs from passing FLAG into fivepstart function for query and reference are equal: # IF THE START POSITIONS MATCH
+                if the UMIs match or if they query UMIs not in UMI SET: # IF THE UMIS MATCH or BAD UMI
+                    remove query row (as reference row came first) # Match or Bad UMI
+
+        Move query down one row 
+
+
+`
+
+
+
+
