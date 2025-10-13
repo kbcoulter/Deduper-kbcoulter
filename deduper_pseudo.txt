@@ -1,32 +1,26 @@
-### NOTE ###
-
-Note the following variables and their columns:
-    QNAME   (COL1) 
-    FLAG    (COL2)
-    RNAME   (COL3) 
-    POS     (COL4)
-    CIGAR   (COL6)
-
-ENSURE THAT WHEN THE END OF THE FILE IS REACHED, WE DO NOT ADD A DUPLICATE 
-
 ### FUNCTIONS ###
 
 collect inputs using argparse...
 
-create function: fivepstart, which accepts POS (Integer), CIGAR (String), and FLAG (Integer) as arguments and returns an Integer.
+function: fivepstart: accepts POS (Integer), CIGAR (String), and FLAG (Integer) as arguments and returns an Integer.
     This function accepts the leftmost position, the cigar string, and the strandedness variable and returns the 5' start position of the read as an integer. 
-    ** Test examples (for individual functions) ** 
+    ** EXAMPLE INPUT AND OUTPUT BELOW **
     Return fivepstart(Integer)
 
-create function: umigrabber, which accepts QNAME string input and returns a string.
+INPUTS: 0,	130171693,	71M	*
+OUTPUT: 130171693
+
+function: umigrabber: accepts QNAME string input and returns an UMI string.
     This function accepts the Query Template Name, and cuts the template down to return only the UMI as a string.
-    ** Test examples (for individual functions) **
+    ** EXAMPLE INPUT AND OUTPUT BELOW **
     Return UMI(Intiger)
 
+INPUT: NS500451:154:HWKTMBGXX:1:11101:6251:1098:GTTACGTA
+OUTPUT: GTTACGTA
 
 ### SCRIPT BODY ###
 
-With the input UMI file, read the unique UMI's into a set for fast search. 
+With the input UMI file, read the unique UMI's into a set for fast UMI search. 
 Create a Bad Umi Dictionary 
 Create a Duplicate Dictionary 
 
@@ -38,6 +32,8 @@ With the input SAM file, reading row by row:
     Set variable query to be second row 
 
     while we have a real query (in bounds of file):
+
+        if we have line beginning with @ we keep it. These do not need to be De-Duped.
 
         if reference RNAME is not equal to query RNAME: # IF THE CHROMOSOMES DO NOT MATCH
             Write reference to output file # Moving on with no match
@@ -58,8 +54,19 @@ With the input SAM file, reading row by row:
 
         Move query down one row 
 
-close files
-write report to txt near output dir 
+        # NOTE TO SELF: REORDER CONDITIONALS BY RUNTIME, NOT BY NUMBER OF COMPARISONS (CURRENT) 
+            # UMI COLLECT COL 1, CUT, MAKE COMPARISON WOULD LIKLEY BE FASTER THAN COLLECTING LEFTMOST POS, COLLECTING CIGAR, INTERPRETING CIGAR, ADJUSTING START, THEN COMPARING
+            # THIS IS LIKLEY TRUE EVEN WITH MORE DATA. 
+
+### OUTPUT ###
+Close output sam file
+
+Within the same directory as the output file, open to write .txt report 
+    Write Duplicate Dictionary, Bad UMI Dictionary, Possibly UMI Bank, Possibly Paths
+
+### OPTIONAL OUTPUT ### 
+OPTIONAL PRINT DONE 
+
 
 
 
