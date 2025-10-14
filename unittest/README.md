@@ -15,5 +15,5 @@
 #### Contains the expected output from test.sam after DeDup
 
 Lines 11, 21, and 23 should be missing from final output, as they are Duplicates with lines appearing before them, or the UMI does not exist.
-Because we are opting to keep the 1st appearing record, these will not appear in our output. 
+Because we are opting to keep the 1st appearing record, and our record is sorted, these will not appear in our output. 
 

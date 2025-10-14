@@ -1,4 +1,6 @@
+#################
 ### FUNCTIONS ###
+#################
 
 collect inputs using argparse...
 
@@ -18,7 +20,9 @@ function: umigrabber: accepts QNAME string input and returns an UMI string.
 INPUT: NS500451:154:HWKTMBGXX:1:11101:6251:1098:GTTACGTA
 OUTPUT: GTTACGTA
 
+###################
 ### SCRIPT BODY ###
+###################
 
 With the input UMI file, read the unique UMI's into a set for fast UMI search. 
 Create a Bad Umi Dictionary 
@@ -28,37 +32,60 @@ Open an ouput file at the provided path:
 
 With the input SAM file, reading row by row:
 
-    Set variable reference to be first row   
-    Set variable query to be second row 
+    Set reference as a variable equal to the first row  
+    Set ref_flag as reference row FLAG 
+    Set ref_umi as None 
+    Set ref_start as None 
+
+    Set query as a variable equal to be second row 
+    Set query_umi as None
 
     while we have a real query (in bounds of file):
-
-        if we have line beginning with @ we keep it. These do not need to be De-Duped.
+        If we have line beginning with @ we keep it. These do not need to be De-Duped.
+        Write reference to output file
 
         if reference RNAME is not equal to query RNAME: # IF THE CHROMOSOMES DO NOT MATCH
             Write reference to output file # Moving on with no match
             Set reference equal to query # Move reference down
+            Set ref_flag as reference row FLAG
+            Set ref_umi as None # output of umigrabber(reference TEMPLATE NAME)
+            Set ref_start as None # fivepstart(reference POS, CIGAR, FLAG)
+
             Move query down one row # Move query down
+            Set query_umi as None
+
             continue # No Match
 
-        if reference FLAG (strand) is the same as query FLAG (strand): # IF THE STRANDS DO MATCH
-            if the outputs from passing FLAG into fivepstart function for query and reference are equal: # IF THE START POSITIONS MATCH
-                if the UMIs match or if they query UMIs not in UMI SET: # IF THE UMIS MATCH or BAD UMI
-                    Add to holder to format output report ??
-                        Update Duplicate Dictionary.
-                        Update Bad UMI Dictionary. 
-                    Remove Query Row Entirely 
-                else write query row to output file # IF AFTER MATCH, UMI NO MATCH
-            else write query row to output file # IF AFTER MATCH START POSITION NO MATCH
-        else write query row to output file # IF AFTER CHROM, STRANDS NO MATCH
+        if ref_flag is the same as query FLAG (strand): # IF THE STRANDS MATCH
+            set query_umi equal to umigrabber(Query Template Name)
+
+            if query_umi not in UMI SET: # BAD UMI
+                Update Bad UMI Dictionary
+                Remove Query Row Entirely
+
+            else:
+                set ref_umi equal to umigrabber(reference Template Name)
+
+                if the query_umi and ref_umi match: # IF THE UMIS MATCH
+                    set ref_start equal to fivepstart(reference POS, CIGAR, FLAG)
+                    
+                    if ref_start and fivepstart(query POS, CIGAR, FLAG) are equal: # IF THE START POSITIONS MATCH -> MATCH! 
+                        OPTIONAL: Update Duplicate Dictionary
+                        Remove Query Row Entirely
+
+                    else: write query row to output file # POSITION NO MATCH
+                else: write query row to output file # UMI NO MATCH
+        else write query row to output file # IF STRANDS DO NOT MATCH
 
         Move query down one row 
 
-        # NOTE TO SELF: REORDER CONDITIONALS BY RUNTIME, NOT BY NUMBER OF COMPARISONS (CURRENT) 
-            # UMI COLLECT COL 1, CUT, MAKE COMPARISON WOULD LIKLEY BE FASTER THAN COLLECTING LEFTMOST POS, COLLECTING CIGAR, INTERPRETING CIGAR, ADJUSTING START, THEN COMPARING
-            # THIS IS LIKLEY TRUE EVEN WITH MORE DATA. 
+        # NOTE TO SELF: REORDERED CONDITIONALS BY RUNTIME, NOT BY NUMBER OF COMPARISONS ^^^ (CURRENT)
 
+
+##############
 ### OUTPUT ###
+##############
+
 Close output sam file
 
 Within the same directory as the output file, open to write .txt report 
@@ -67,9 +94,28 @@ Within the same directory as the output file, open to write .txt report
 ### OPTIONAL OUTPUT ### 
 OPTIONAL PRINT DONE 
 
+if __name__ is equal to main:
+
+    (Run tests for the functions with assert.)
+
+    umigrabber:
+        INPUT: NS500451:154:HWKTMBGXX:1:11101:6251:1098:GTTACGTA
+        OUTPUT: GTTACGTA
+
+    fivepstart:
+        INPUTS: 0,	130171693,	71M	*
+        OUTPUT: 130171693
 
 
 
+
+
+
+###################################################
+### REVISED BLOCK IF REPORT FILE IS UNNECESSARY ###
+###################################################
+
+# NEVERMIND, BLOCK DOES NOT WORK WITH UMI CHECK. 
 
 
 
