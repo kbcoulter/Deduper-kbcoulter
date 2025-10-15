@@ -17,3 +17,5 @@
 Lines 11, 21, and 23 should be missing from final output, as they are Duplicates with lines appearing before them, or the UMI does not exist.
 Because we are opting to keep the 1st appearing record, and our record is sorted, these will not appear in our output. 
 
+## Testing Functions in DeDuper:
+Function Testing Can be Found at the Bottom of _____ File. 

@@ -1,10 +1,14 @@
+##################################
+### DeDuper Pseudocode Outline ###
+##################################
+
 #################
 ### FUNCTIONS ###
 #################
 
-collect inputs using argparse...
+Collect inputs using argparse...
 
-function: fivepstart: accepts POS (Integer), CIGAR (String), and FLAG (Integer) as arguments and returns an Integer.
+Function: fivepstart: accepts POS (Integer), CIGAR (String), and FLAG (Integer) as arguments and returns an Integer.
     This function accepts the leftmost position, the cigar string, and the strandedness variable and returns the 5' start position of the read as an integer. 
     ** EXAMPLE INPUT AND OUTPUT BELOW **
     Return fivepstart(Integer)
@@ -12,7 +16,7 @@ function: fivepstart: accepts POS (Integer), CIGAR (String), and FLAG (Integer) 
 INPUTS: 0,	130171693,	71M	*
 OUTPUT: 130171693
 
-function: umigrabber: accepts QNAME string input and returns an UMI string.
+Function: umigrabber: accepts QNAME string input and returns an UMI string.
     This function accepts the Query Template Name, and cuts the template down to return only the UMI as a string.
     ** EXAMPLE INPUT AND OUTPUT BELOW **
     Return UMI(Intiger)
@@ -24,75 +28,88 @@ OUTPUT: GTTACGTA
 ### SCRIPT BODY ###
 ###################
 
-With the input UMI file, read the unique UMI's into a set for fast UMI search. 
-Create a Bad Umi Dictionary 
-Create a Duplicate Dictionary 
+Read the possible UMIs into set called UMISET
+Create a BADUMI Dictionary 
+Create a DUPLICATE Dictionary 
+Open an output file for writing at the provided path
 
-Open an ouput file at the provided path: 
+Open the input SAM file for reading:
 
-With the input SAM file, reading row by row:
+    Set refer_pos equal to None
+    Set refer_umi equal to None
+    Set refer_flag equal to None
+    Set refer_rname equal to None
+    Set reference equal to None
 
-    Set reference as a variable equal to the first row  
-    Set ref_flag as reference row FLAG 
-    Set ref_umi as None 
-    Set ref_start as None 
+    For each line in the file:
+        If line begins with @:
+            Write the line to the output file
+            Continue
 
-    Set query as a variable equal to be second row 
-    Set query_umi as None
+        Set umi equal to umigrabber (Line TEMPLATE NAME)
+        If umi not in UMISET:
+            Update BADUMI
+            continue
 
-    while we have a real query (in bounds of file):
-        If we have line beginning with @ we keep it. These do not need to be De-Duped.
-        Write reference to output file
+        Write the line to the output file.                                       # REFERENCE FOUND #
+        # OPTIONAL: Count references for chromosomes ID # 
+        Set reference equal to the current line 
+        Set refer_flag equal to reference FLAG
+        Set refer_pos equal to fivepstart(reference POS, CIGAR, FLAG)
+        Set refer_umi equal to umi
+        Set refer_rname equal to reference RNAME
+        Break
+    
+    For query following the reference: # Loop Continues From Same Spot
+        Set query_umi equal to umigrabber(query TEMPLATE NAME)
+        If query_umi not in UMISET:
+            Update BADUMI
+            continue
 
-        if reference RNAME is not equal to query RNAME: # IF THE CHROMOSOMES DO NOT MATCH
-            Write reference to output file # Moving on with no match
-            Set reference equal to query # Move reference down
-            Set ref_flag as reference row FLAG
-            Set ref_umi as None # output of umigrabber(reference TEMPLATE NAME)
-            Set ref_start as None # fivepstart(reference POS, CIGAR, FLAG)
+        Set query_rname equal to Query RNAME
 
-            Move query down one row # Move query down
-            Set query_umi as None
+        If query_rname is not the same as refer_rname: ### CHROMOSOMES DO NOT MATCH ###
+            Write reference to the output file.
+            Set reference equal to query
+            Set refer_flag equal to query_flag
+            Set refer_pos equal to query_pos
+            Set refer_umi equal query_umi
+            Set refer_rname equal to query_rname
+            continue
 
-            continue # No Match
+        query_flag = Query FLAG
+            
+        if refer_flag is the same as query_flag:                                # STRAND MATCH
+            if query_umi is the same as ref_umi:                                # UMI MATCH
+                Set query_pos equal to fivepstart(query POS, CIGAR, FLAG)
+                if query_pos is the same as refer_pos:                          # POSITION MATCH
+                    Update DUPLICATE Dictionary                                 # DUPLICATE FOUND
+                    Continue
+                else: write query to output
+            else: write query to output
+        else: write query to output
+        
+        reference = query
+        refer_flag = query_flag
+        refer_pos = fivepstart(query POS, CIGAR, query_flag) # CONDITIONAL
+        refer_umi  = query_umi
+        refer_rname = query_rname
 
-        if ref_flag is the same as query FLAG (strand): # IF THE STRANDS MATCH
-            set query_umi equal to umigrabber(Query Template Name)
-
-            if query_umi not in UMI SET: # BAD UMI
-                Update Bad UMI Dictionary
-                Remove Query Row Entirely
-
-            else:
-                set ref_umi equal to umigrabber(reference Template Name)
-
-                if the query_umi and ref_umi match: # IF THE UMIS MATCH
-                    set ref_start equal to fivepstart(reference POS, CIGAR, FLAG)
-                    
-                    if ref_start and fivepstart(query POS, CIGAR, FLAG) are equal: # IF THE START POSITIONS MATCH -> MATCH! 
-                        OPTIONAL: Update Duplicate Dictionary
-                        Remove Query Row Entirely
-
-                    else: write query row to output file # POSITION NO MATCH
-                else: write query row to output file # UMI NO MATCH
-        else write query row to output file # IF STRANDS DO NOT MATCH
-
-        Move query down one row 
-
-        # NOTE TO SELF: REORDERED CONDITIONALS BY RUNTIME, NOT BY NUMBER OF COMPARISONS ^^^ (CURRENT)
-
+write last reference to output file
+close output file
 
 ##############
 ### OUTPUT ###
 ##############
 
-Close output sam file
-
 Within the same directory as the output file, open to write .txt report 
-    Write Duplicate Dictionary, Bad UMI Dictionary, Possibly UMI Bank, Possibly Paths
+    Write Duplicate Dictionary, Bad UMI Dictionary, Possibly UMI Bank, Possibly Paths into .txt and close. 
 
-### OPTIONAL OUTPUT ### 
-OPTIONAL PRINT DONE 
+### OPTIONAL: Print "Done DeDuplicating!"
+
+#######################
+### FUNCTION TESTING ###
+########################
 
 if __name__ is equal to main:
 
@@ -106,16 +123,6 @@ if __name__ is equal to main:
         INPUTS: 0,	130171693,	71M	*
         OUTPUT: 130171693
 
-
-
-
-
-
-###################################################
-### REVISED BLOCK IF REPORT FILE IS UNNECESSARY ###
-###################################################
-
-# NEVERMIND, BLOCK DOES NOT WORK WITH UMI CHECK. 
 
 
 
