@@ -89,11 +89,11 @@ Open the input SAM file for reading:
             else: write query to output
         else: write query to output
         
-        reference = query
-        refer_flag = query_flag
-        refer_pos = fivepstart(query POS, CIGAR, query_flag) # CONDITIONAL
-        refer_umi  = query_umi
-        refer_rname = query_rname
+        Set reference equal to query
+        Set refer_flag equal to query_flag
+        Set refer_pos equal to fivepstart(query POS, CIGAR, query_flag) # CONDITIONAL
+        Set refer_umi equal to query_umi
+        Set refer_rname equal to query_rname
 
 write last reference to output file
 close output file
