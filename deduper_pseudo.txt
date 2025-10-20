@@ -2,6 +2,10 @@
 ### DeDuper Pseudocode Outline ###
 ##################################
 
+Accepting a sorted sam file of uniquely mapped reads, remove all PCR duplicates and all reads with unexpected UMIs, 
+retaining the first appearing duplicate. Avoid loading the entire file into the script at a time, as this is not 
+memory efficient. 
+
 #################
 ### FUNCTIONS ###
 #################
