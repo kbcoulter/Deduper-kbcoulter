@@ -4,39 +4,59 @@
 ### DEDUPER: Removes PCR Duplicates From Sorted SAM File ###
 ############################################################
 
+import re
+
 #################
 ### FUNCTIONS ###
 #################
 
 def fivepstart(POS:int, CIGAR:str, FLAG:int) -> int:
 
-    one = FALSE # is the letter the first one 
 
-    # MINUS STRAND
+    pattern = r'\d+[A-Z]'
+    re.findall(pattern, CIGAR)
+
+
+    # MINUS STRAND GOING 3 -> 5
     M = # MATCH
     D = - # DELETION
-    S = + if one - if not one  # SOFTCLIPPING
+    S = + # SOFTCLIPPING
     N = + # SKIPPING
 
-    # PLUS STRAND
-    M = 
-    D = +
-    S = -
-    N = -
 
-    if FLAG: # MINUS STRAND
-        val = ""
+    leading = True # is the leading letter
+
+    if FLAG & ( 1 << 16): # MINUS STRAND
+        read_len = 0
+        val = "0"
         for char in CIGAR:
             if char.isnumeric:
-                append char
+                val.join(str(char))
             else:
-                POS MINUSOPERATIONMAP val
-    
+                if char == "S":
+                    if not leading:
+                        #SUBTRACT NUM FROM REFERENCE
+                        leading = False # SET TO FALSE
+                    else:
+                        # DO NOTHING
+                elif char == "M":
+                    leading = False
 
+                else: # if character = D, N
+                    read_len += int(val)
 
-                
-    else: # PLUS STRAND
-        
+    else: # PLUS STRAND DONE 
+        val = "0"
+        for char in CIGAR:
+            if char.isnumeric:
+                val = val.join(str(char))
+            else:
+                if char == "S" and leading:
+                    POS = POS - int(val) #SUBTRACT NUM FROM REFERENCE
+                    continue
+
+        return POS
+
 
 def umigrabber(QNAME:str) -> str:
     if len(QNAME) < 8:
@@ -45,7 +65,7 @@ def umigrabber(QNAME:str) -> str:
         return QNAME[-8:]
 
 def main():
-    print(umigrabber("RAINBOWRAINBOW"))
+    # print(umigrabber("NS500451:154:HWKTMBGXX:1:11101:6251:1098:GTTACGTA")) # TESTING
 
 if __name__ == "__main__":
     main()
