@@ -1,3 +1,5 @@
+NOTE: THIS OUTLINE WAS NOT FOLLOWED. SAM INPUT WAS NOT FROM STREAM AS EXPECTED @ CREATION. 
+
 ##################################
 ### DeDuper Pseudocode Outline ###
 ##################################
