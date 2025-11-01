@@ -11,58 +11,64 @@
 import argparse
 import re
 
+CIGAR_PATTERN = re.compile(r'\d+[A-Z]')
+STRIP_PATTERN = re.compile(r'[A-Z]')
+
 def get_args():
      parser = argparse.ArgumentParser(
      description=(
-            "BLAH\n"
-        ),
-        formatter_class=argparse.RawTextHelpFormatter
-    )
-     parser.add_argument("-f", "--file", help="Absolute file path for sorted input SAM file", required=True, type=str)
-     parser.add_argument("-o", "--outfile", help="Absolute file path for deduplicated SAM file", required=True, type=str)
-     parser.add_argument("-u", "--umifile", help="File containing list of UMIs", required = True, type=str)
+                  "################################\n"
+                  "# Deduper | kcoulter | 10-2025 #\n"
+                  "################################\n\n"
+                  "PURPOSE: Given a SAM file of uniquely mapped reads, remove all PCR duplicates (retain only a single copy of each read):\n\n"
+                  "Deduper script requires: (refer to options below):\n"
+                  "\t Uncompressed, Absolute Sorted SAM File Path \n\t Absolute Outfile Path (Without New Dir) \n\t Line Separated UMI File \n\n"
+                  "NOTE: This script assumes SAM file contains unique paired end reads, UMI length of 8, uncompressed file inputs.\n"
+                  "First read of duplicates is saved.\n"
+                  "No Summary file is created. Summary prints to stream (stdout).\n"),
+                  formatter_class=argparse.RawTextHelpFormatter)
+     parser.add_argument("-f", "--file", help="Absolute File Path for Sorted Input SAM File", required=True, type=str)
+     parser.add_argument("-o", "--outfile", help="Absolute File Path for Deduplicated SAM File", required=True, type=str)
+     parser.add_argument("-u", "--umifile", help="Line Separated File Containing List of UMIs", required = True, type=str)
      return parser.parse_args()
 
 #################
 ### FUNCTIONS ###
 #################
 
-def strandedness(FLAG:int) -> str:
-    if FLAG & ( 1 << 16): # MINUS STRAND
-        return "-"
+def strandedness(FLAG:int) -> bool:
+    if (FLAG) & 16:
+        return True
     else:
-        return "+"
+        return False
 
-def fivepstart(POS:int, CIGAR:str, STRAND:str) -> int:
+def stripchar(chunk:str) -> int:
+    return(int(STRIP_PATTERN.sub('', chunk)))
+    
+def fivepstart(POS:int, CIGAR:str, FLAG:int) -> str:
 
-    def stripchar (chunk:str) -> int:
-        return(int(re.sub('[A-Z]', '', chunk)))
-
-    pattern = r'\d+[A-Z]'
-    chunks = re.findall(pattern, CIGAR)
-
-    if STRAND == "-": # MINUS STRAND
+    chunks = CIGAR_PATTERN.findall(CIGAR)
+    if strandedness(FLAG): # MINUS STRAND
         POS -= 1
         for chunk in chunks:
-            if any(x in chunk for x in ("D", "M", "N")):
+            if chunk[-1] in ("D", "M", "N"):
                 POS += stripchar(chunk)
 
         last = chunks[-1]
-        if "S" in last:
+        if last[-1] == "S":
             POS += stripchar(last)
-        return POS
+        return f"-{POS}"
     
     else: # PLUS STRAND 
         first = chunks[0]
-        if "S" in first:
+        if first[-1] == "S":
             POS -= stripchar(first) #SUBTRACT NUM FROM REFERENCE
-        return POS
+        return f"+{POS}"
 
 def umigrabber(QNAME:str) -> str:
     if len(QNAME) < 8:
-        return(f"ERROR: UMI TOO SHORT")
+        return(f"ERROR:UMI")
     else:
-        #return QNAME.split(":")[7]
         return QNAME[-8:]
     
 ###################
@@ -80,9 +86,9 @@ def main():
     unique_reads = 0
     total_reads = 0
     duplicates_removed = 0
-
-    chrom_counter:dict = {}
+    chrom_counter = {}
     UMISET = set()
+
     print("Gathering UMIs...")
     with open(umifile, 'r') as umifile: # MAKE UMISET
         for umi in umifile:
@@ -97,7 +103,7 @@ def main():
 
             for line in file:
                 if "@" in line[0]: # WRITE HEADER AND COUNT
-                    outfile.write(line.strip('\n'))
+                    outfile.write(line)
                     header_lines += 1
                     continue
 
@@ -110,8 +116,11 @@ def main():
                     continue
 
                 CHROM = (cols[2]) #RNAME
-                STRAND = strandedness(int(cols[1])) #FLAG
-                read = f"{UMI},{STRAND},{fivepstart(int(cols[3]), cols[5], STRAND)}" # TRUEPOS from POS, CIGAR, STRAND
+                FLAG = int(cols[1]) #FLAG
+                POS = int(cols[3])
+                CIGAR = cols[5].strip()
+
+                read = f"{UMI},{fivepstart(POS, CIGAR, FLAG)}" # TRUEPOS from POS, CIGAR, STRAND
 
                 if CHROM != chrom_tracker: # IF NEW CHROM, UPDATE TRACKER, CLEAR SET
                     chrom_tracker = CHROM 
@@ -132,15 +141,17 @@ def main():
     ### PRINT OUTPUT ###
     ####################
 
-    print(f"Deduplicated. File can be found at {outfile}\n")
-    print("### DEDUPLICATION SUMMARY ###")
+    print(f"Deduplicated!\n")
+    #print(f"File can be found at {str(outfile)}\n")
+    print("#############################\n### DEDUPLICATION SUMMARY ###\n#############################")
     print(f"Header Lines:   {header_lines}")
     print(f"Bad UMIs:   {bad_umi}")
     print(f"Total Reads:    {total_reads}")
     print(f"Duplicates Removed: {duplicates_removed}")
-    print(f"Total Unique Reads: {unique_reads}")
+    print(f"Total Unique Reads: {unique_reads}\n")
+    print("### UNIQUE READS BY CHROM ###")
     for k,v in chrom_counter.items():
-        print(f"Chrom{k} Unique Reads:  {v}")
+        print(f"{k}\t{v}")
 
 if __name__ == "__main__":
     main()

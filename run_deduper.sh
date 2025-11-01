@@ -10,4 +10,4 @@
 
 mamba activate dedup
 
-/usr/bin/time -v ./deduper.py -f C1_SE_uniqAlign.sorted.sam -o /projects/bgmp/kcoulter/bioinfo/Bi624/Deduper-kbcoulter/C1_SE.out.sam -u STL96.txt
+/usr/bin/time -v ./coulter_deduper.py -f C1_SE_uniqAlign.sorted.sam -o /projects/bgmp/kcoulter/bioinfo/Bi624/Deduper-kbcoulter/C1_SE.out.sam -u STL96.txt
