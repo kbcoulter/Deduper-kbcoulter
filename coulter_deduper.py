@@ -29,7 +29,7 @@ def get_args():
                   formatter_class=argparse.RawTextHelpFormatter)
      parser.add_argument("-f", "--file", help="Absolute File Path for Sorted Input SAM File", required=True, type=str)
      parser.add_argument("-o", "--outfile", help="Absolute File Path for Deduplicated SAM File", required=True, type=str)
-     parser.add_argument("-u", "--umifile", help="Line Separated File Containing List of UMIs", required = True, type=str)
+     parser.add_argument("-u", "--umi", help="Line Separated File Containing List of UMIs", required = True, type=str)
      return parser.parse_args()
 
 #################
@@ -37,16 +37,18 @@ def get_args():
 #################
 
 def strandedness(FLAG:int) -> bool:
+    '''Accepts a SAM file integer FLAG and returns True boolean for a Minus Strand Read or False boolean for a Positive Strand Read.'''
     if (FLAG) & 16:
         return True
     else:
         return False
 
 def stripchar(chunk:str) -> int:
+    '''Accepts a string of text containing ONLY UPPERCASE letters, strips said letters, and returns the integer within the string.'''
     return(int(STRIP_PATTERN.sub('', chunk)))
     
 def fivepstart(POS:int, CIGAR:str, FLAG:int) -> str:
-
+    '''Accepts a SAM file POS integer, CIGAR string, and FLAG integer, utilizing the strandedness and stripchar functions to return a string containing the strand (+ or -) and True Start Position. (Ex: "+32")'''
     chunks = CIGAR_PATTERN.findall(CIGAR)
     if strandedness(FLAG): # MINUS STRAND
         POS -= 1
@@ -66,6 +68,7 @@ def fivepstart(POS:int, CIGAR:str, FLAG:int) -> str:
         return f"+{POS}"
 
 def umigrabber(QNAME:str) -> str:
+    '''Accepts a SAM file QNAME string and returns the 8 character UMI string from the end of QNAME.'''
     if len(QNAME) < 8:
         return(f"ERROR:UMI")
     else:
@@ -79,7 +82,7 @@ def main():
     args = get_args()
     file = args.file
     outfile = args.outfile
-    umifile = args.umifile
+    umi = args.umi
 
     header_lines = 0
     bad_umi = 0 
@@ -90,9 +93,9 @@ def main():
     UMISET = set()
 
     print("Gathering UMIs...")
-    with open(umifile, 'r') as umifile: # MAKE UMISET
-        for umi in umifile:
-            UMISET.add(umi.strip())
+    with open(umi, 'r') as umi: # MAKE UMISET
+        for each_umi in umi:
+            UMISET.add(each_umi.strip())
 
     print("Opening SAM...")
     with open(outfile, 'x') as outfile:

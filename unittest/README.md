@@ -1,21 +1,33 @@
 # Deduper unittest
 
-## test.sam:
-#### Test file covering all test cases in DeDup in the order:
+## Deduper Function Testing
+To Ensure that All Functions Necessary to Run Deduper are functioning properly, from Deduper-kbcoulter/ please run the script test_func_deduper.py with:
 
-- Line 11: Same Adjusted Position (From Cigar String)
-- Line 13: Different Chromomsome Number
-- Line 15: Different Strand
-- Line 17: Different Position (With Cigar String)
-- Line 19: Different UMI 
-- Line 21: Same Everything (Without Cigar String Adjustment)
-- Line 23: UMI Not in Bank
+```{bash}
+$ ./test_func_deduper.py 
+```
 
-## out_test.sam:
-#### Contains the expected output from test.sam after DeDup
+## Deduper Deduplication Testing
+To ensure that Deduplication is functioning properly, from Deduper-kbcoulter/ please run the script test_deduper.py with:
 
-Lines 11, 21, and 23 should be missing from final output, as they are Duplicates with lines appearing before them, or the UMI does not exist.
-Because we are opting to keep the 1st appearing record, and our record is sorted, these will not appear in our output. 
+```{bash}
+$ sbatch ./test_deduper.sh
+```
 
-## Testing Functions in DeDuper:
-Function Testing Can be Found at the Bottom of _____ File. 
+This will run Deduper on test files in unittest dir:
+
+``` 
+test.sam 
+test_two.sam
+```
+
+And compare them to:
+```
+test.out.sam
+test_two.out.sam
+```
+**In test.sam:** Specific cases covered are detailed in the test.sam file beyond the columns necessary for deduplication. 
+
+**In test_two.sam** Specific cases covered are not detailed, as this file is designed to more closely (but not perfectly) resemble a SAM file. 
+
+### Note: Please allow script to run completely to clean up tmp files. 

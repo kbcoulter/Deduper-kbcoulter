@@ -5,6 +5,8 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --nodes=1
 #SBATCH --job-name=test_dedup.sh
+#SBATCH --error=test_dedup%j_err.log
+#SBATCH --output=test_dedup%j_out.log
 
 mamba activate dedup
 
