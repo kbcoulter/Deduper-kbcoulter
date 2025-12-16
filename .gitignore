@@ -2,4 +2,4 @@ notebook.txt
 C1_SE*
 *err.log
 *out.log
-
+__pycache__/
