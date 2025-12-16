@@ -10,9 +10,9 @@
 
 mamba activate dedup
 
-./coulter_deduper.py -f unittest/test.sam -o /projects/bgmp/kcoulter/bioinfo/Bi624/Deduper-kbcoulter/test.out.sam.tmp -u /projects/bgmp/kcoulter/bioinfo/Bi624/Deduper-kbcoulter/STL96.txt
+./deduper.py -f unittest/test.sam -o ./test.out.sam.tmp -u ./STL96.txt
 
-./coulter_deduper.py -f unittest/test_two.sam -o /projects/bgmp/kcoulter/bioinfo/Bi624/Deduper-kbcoulter/test_two.out.sam.tmp -u /projects/bgmp/kcoulter/bioinfo/Bi624/Deduper-kbcoulter/STL96.txt
+./deduper.py -f unittest/test_two.sam -o ./test_two.out.sam.tmp -u ./STL96.txt
 
 if cmp -s test.out.sam.tmp unittest/test.out.sam && cmp -s test_two.out.sam.tmp unittest/test_two.out.sam; then
     echo -e "\nDeduplication Test Passed! File Deduplicated as Expected!"
@@ -24,3 +24,5 @@ echo -e "\nCleaning Up...\n"
 
 rm test_two.out.sam.tmp
 rm test.out.sam.tmp
+
+echo -e "Done.\n"

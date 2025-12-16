@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from coulter_deduper import *
+from deduper import *
 
 def test_fivepstart():
     '''Tests fivepstart from deduper.py'''
