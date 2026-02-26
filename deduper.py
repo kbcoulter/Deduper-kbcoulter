@@ -1,12 +1,8 @@
 #!/usr/bin/env python
 
-############################################################
 ### DEDUPER: Removes PCR Duplicates From Sorted SAM File ###
-############################################################
 
-##########################
 ### IMPORTS & ARGPARSE ###
-##########################
 
 import argparse
 import re
@@ -16,25 +12,25 @@ STRIP_PATTERN = re.compile(r'[A-Z]')
 
 def get_args():
      parser = argparse.ArgumentParser(
-     description=(
-
-                  " Given a SAM file of uniquely mapped reads, remove all PCR duplicates (retain only a single copy of each read):\n\n"
-                  "Deduper script requires: \n"
-                  "\t Uncompressed, Absolute Sorted SAM File Path \n\t Absolute Outfile Path (Without New Dir) \n\t Line Separated UMI .txt File \n\n"
-                  "NOTE: This script assumes SAM file contains unique paired end reads, UMI length of 8, uncompressed file inputs.\n"
-                  "First read of duplicates is saved.\n"
-                  "No Summary file is created. Summary prints to stream (stdout).\n"),
-                  formatter_class=argparse.RawTextHelpFormatter)
+        description = (
+            "Given a SAM file containing uniquely mapped reads, remove all PCR duplicates by "
+            "retaining only the first occurrence of each read.\n\n"
+            "Requirements:\n"
+            "  - Absolute path to an uncompressed, coordinate-sorted SAM file\n"
+            "  - Absolute output file path (must point to an existing directory)\n"
+            "  - Line-separated text file containing valid UMIs\n\n"
+            "Notes:\n"
+            "  - Assumes paired-end reads and consistent UMI length\n"
+            "  - Only the first instance of a duplicate read is kept\n"
+            "  - No summary file is produced; summary information is printed to stdout\n"),
+            formatter_class=argparse.RawTextHelpFormatter)
      parser.add_argument("-f", "--file", help="Absolute File Path for Sorted Input SAM File", required=True, type=str)
      parser.add_argument("-o", "--outfile", help="Absolute File Path for Deduplicated SAM File", required=True, type=str)
      parser.add_argument("-u", "--umi", help="Line Separated File Containing List of UMIs", required = True, type=str)
      parser.add_argument("-l", "--umi_length", help="Length of UMI (Default: 8)", required=False, type=int, default=8)
      return parser.parse_args()
 
-#################
 ### FUNCTIONS ###
-#################
-
 def strandedness(FLAG:int) -> bool:
     '''Accepts a SAM file integer FLAG and returns True boolean for a Minus Strand Read or False boolean for a Positive Strand Read.'''
     if (FLAG) & 16:
@@ -73,10 +69,8 @@ def umigrabber(QNAME:str, umi_length:int) -> str:
     else:
         return QNAME[-umi_length:]
     
-###################
-### SCRIPT BODY ###
-###################
 
+### SCRIPT BODY ###
 def main():
     args = get_args()
     file = args.file
@@ -139,19 +133,17 @@ def main():
                 else: # IF READ NOT UNIQUE, COUNT DUPLICATE
                     duplicates_removed += 1 
 
-    ####################
-    ### PRINT OUTPUT ###
-    ####################
-
+    ### PRINT OUTPUT ###  
     print(f"Deduplicated!\n")
     #print(f"File can be found at {str(outfile)}\n")
-    print("#############################\n### DEDUPLICATION SUMMARY ###\n#############################")
+
+    print("\n##### DEDUPLICATION SUMMARY #####\n")
     print(f"Header Lines:   {header_lines}")
     print(f"Bad UMIs:   {bad_umi}")
     print(f"Total Reads:    {total_reads}")
     print(f"Duplicates Removed: {duplicates_removed}")
     print(f"Total Unique Reads: {unique_reads}\n")
-    print("### UNIQUE READS BY CHROM ###")
+    print("## UNIQUE READS BY CHROM ##")
     for k,v in chrom_counter.items():
         print(f"{k}\t{v}")
 

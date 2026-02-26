@@ -1,39 +1,49 @@
 # Deduper 
-## Reference Based PCR Duplicate Removal Tool
+### Reference Based PCR Duplicate Removal Tool
 
-Deduper is a Python-based tool designed to remove PCR duplicates from a sorted SAM file of uniquely mapped reads. It retains only a single copy of each read, enabling accurate and efficient downstream analysis.
+Deduper is a Python-based tool designed to remove [PCR](https://en.wikipedia.org/wiki/Polymerase_chain_reaction) duplicates from a sorted SAM file of uniquely mapped reads. It retains only a single copy of each read, enabling accurate and efficient downstream analysis.
 
     
-### Assumptions
+## Assumptions
 - Single-end sequencing data
-- Unique Molecular Identifiers (UMIs) embedded in the QNAME field
-        Example:```NS500451:154:HWKTMBGXX:1:11101:15364:1139:GAACAGGT```. 
-- Unique UMIS are newline separated in UMI.txt file
-- UMI length is 8 bases. 
-- Input SAM file is uncompressed and sorted (e.g., using samtools sort)
+- Unique Molecular Identifiers (UMIs) embedded in the QNAME field: ```NS500451:154:HWKTMBGXX:1:11101:15364:1139:GAACAGGT```
+- Unique UMIS are newline separated in an UMI.txt file
+- Input SAM file is uncompressed and sorted (e.g., using [samtools](https://www.htslib.org/doc/#manual-pages) sort)
+- Specified UMI length (defaults to 8). 
 
-### Features
+## Features
 - Efficient PCR duplicate removal
 - Handles UMIs and discards erroneous ones
-- Retains the first read encountered when duplicates are found
+- Retains the **first** read encountered when duplicates are found
 - Accounts for all possible CIGAR strings, including soft clipping adjustments
 - Outputs a properly formatted SAM file
 - Does **NOT** modify the input file
     
-### Usage
+## Usage
 
-To Test Individual Functions or entire pipeline, see: ```unittest/README.md```
+### 1. To test individual functions or entire pipeline, run one of the following scripts:
+```bash
+$ ./test_func_deduper.py #TO TEST FUNCTIONS
+$ sbatch ./test_deduper.sh # TO TEST FULL PIPELINE
+```
 
-To Run Deduplication Pipeline:
-    ```
-    $ ./deduper.py -u <UMI.txt> -f <input.sam> -o <output.sam>
-    ```
+For more information, please refer to the **[unittest manual](unittest/README.md)**. 
 
-To Get Help:
-    ```
-    $ ./deduper.py -h
-    ```
 
-### Additions
+### 2. To Run Deduplication Pipeline:
+```bash
+$ ./deduper.py \
+    -u <UMI.txt> \
+    -f <input.sam> \
+    -o <output.sam>
+    -l <UMI length if not 8> #OPTIONAL
+```
 
-Future updates will include support for paired-end reads, handling randomers instead of UMIs, error correction for known UMIs rather than discarding errors, compatibility with longer UMIs (>8 bases), and an option to choose which duplicate is retained in the output file.
+### 3. To Get Help:
+```
+$ ./deduper.py -h
+```
+
+## Additions
+
+Planned updates will include support for paired-end reads and an option to choose which duplicate is retained in the output file.
