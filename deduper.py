@@ -17,12 +17,10 @@ STRIP_PATTERN = re.compile(r'[A-Z]')
 def get_args():
      parser = argparse.ArgumentParser(
      description=(
-                  "################################\n"
-                  "# Deduper | kcoulter | 10-2025 #\n"
-                  "################################\n\n"
-                  "PURPOSE: Given a SAM file of uniquely mapped reads, remove all PCR duplicates (retain only a single copy of each read):\n\n"
-                  "Deduper script requires: (refer to options below):\n"
-                  "\t Uncompressed, Absolute Sorted SAM File Path \n\t Absolute Outfile Path (Without New Dir) \n\t Line Separated UMI File \n\n"
+
+                  " Given a SAM file of uniquely mapped reads, remove all PCR duplicates (retain only a single copy of each read):\n\n"
+                  "Deduper script requires: \n"
+                  "\t Uncompressed, Absolute Sorted SAM File Path \n\t Absolute Outfile Path (Without New Dir) \n\t Line Separated UMI .txt File \n\n"
                   "NOTE: This script assumes SAM file contains unique paired end reads, UMI length of 8, uncompressed file inputs.\n"
                   "First read of duplicates is saved.\n"
                   "No Summary file is created. Summary prints to stream (stdout).\n"),
@@ -30,6 +28,7 @@ def get_args():
      parser.add_argument("-f", "--file", help="Absolute File Path for Sorted Input SAM File", required=True, type=str)
      parser.add_argument("-o", "--outfile", help="Absolute File Path for Deduplicated SAM File", required=True, type=str)
      parser.add_argument("-u", "--umi", help="Line Separated File Containing List of UMIs", required = True, type=str)
+     parser.add_argument("-l", "--umi_length", help="Length of UMI (Default: 8)", required=False, type=int, default=8)
      return parser.parse_args()
 
 #################
@@ -67,12 +66,12 @@ def fivepstart(POS:int, CIGAR:str, FLAG:int) -> str:
             POS -= stripchar(first) #SUBTRACT NUM FROM REFERENCE
         return f"+{POS}"
 
-def umigrabber(QNAME:str) -> str:
-    '''Accepts a SAM file QNAME string and returns the 8 character UMI string from the end of QNAME.'''
-    if len(QNAME) < 8:
+def umigrabber(QNAME:str, umi_length:int) -> str:
+    '''Accepts a SAM file QNAME string and returns the UMI string of length umi_length from the end of QNAME.'''
+    if len(QNAME) < umi_length:
         return(f"ERROR:UMI")
     else:
-        return QNAME[-8:]
+        return QNAME[-umi_length:]
     
 ###################
 ### SCRIPT BODY ###
@@ -112,7 +111,7 @@ def main():
 
                 total_reads += 1
                 cols = line.strip().split('\t')
-                UMI = umigrabber(cols[0]) #QNAME
+                UMI = umigrabber(cols[0], args.umi_length) #QNAME
 
                 if UMI not in UMISET: # IF UMI BAD, COUNT AND KEEP GOING
                     bad_umi += 1 
