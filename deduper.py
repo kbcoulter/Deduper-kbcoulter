@@ -3,7 +3,6 @@
 ### DEDUPER: Removes PCR Duplicates From Sorted SAM File ###
 
 ### IMPORTS & ARGPARSE ###
-
 import argparse
 import re
 
@@ -50,10 +49,9 @@ def fivepstart(POS:int, CIGAR:str, FLAG:int) -> str:
         for chunk in chunks:
             if chunk[-1] in ("D", "M", "N"):
                 POS += stripchar(chunk)
-
-        last = chunks[-1]
-        if last[-1] == "S":
-            POS += stripchar(last)
+        #last = chunks[-1] # Softclipping Bug Fix
+        #if last[-1] == "S":
+        #    POS += stripchar(last)
         return f"-{POS}"
     
     else: # PLUS STRAND 
@@ -130,7 +128,7 @@ def main():
                         chrom_counter[CHROM] += 1
                     else:
                         chrom_counter[CHROM] = 1 
-                else: # IF READ NOT UNIQUE, COUNT DUPLICATE
+                else:
                     duplicates_removed += 1 
 
     ### PRINT OUTPUT ###  
